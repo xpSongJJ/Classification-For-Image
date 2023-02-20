@@ -1,6 +1,8 @@
+import json
+
 import torch.utils.data
 from config import Config
-from shufflenet.model import shufflenet_v2_x1_0 as create_model
+from model import swin_tiny_patch4_window7_224 as create_model
 from utils import try_a_train, try_an_evaluate
 from torch.utils.tensorboard import SummaryWriter
 from torchvision import transforms, datasets
@@ -13,7 +15,7 @@ import time
 def main():
     config = Config()
     print("using {} device".format(config.device))
-    config.weights_file = 'shufflenet_v2_x1_0.pth'
+    config.weights_file = 'swin_tiny_patch4_windows7_224.pth'
 
     log_dir = './runs/' + time.strftime('%Y-%m-%d-%H-%M', time.localtime())
     writer = SummaryWriter(log_dir=log_dir)
@@ -38,8 +40,23 @@ def main():
                                       transform=data_transforms["val"])
         train_dataset = ConcatDataset([train_dataset, train_ds])
         val_dataset = ConcatDataset([val_dataset, val_ds])
+        # 讲class_to_idx写入json文件
+        cls_list = train_ds.class_to_idx
+        class_dict = dict((val, key) for key, val in cls_list.items())
+        json_str = json.dumps(class_dict, indent=4)
+        with open('class_indices.json', 'w') as json_file:
+            json_file.write(json_str)
+
     config.num_train = len(train_dataset)
     config.num_val = len(val_dataset)
+
+    # 讲class_to_idx写入json文件
+    cls_list = train_dataset.class_to_idx
+    class_dict = dict((val, key) for key, val in cls_list.items())
+    json_str = json.dumps(class_dict, indent=4)
+    with open('class_indices.json', 'w') as json_file:
+        json_file.write(json_str)
+
     print("train data number: {}, valuate data number: {}".format(config.num_train, config.num_val))
 
     train_loader = torch.utils.data.DataLoader(train_dataset,

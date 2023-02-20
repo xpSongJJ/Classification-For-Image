@@ -1,6 +1,6 @@
 import torch.utils.data
 from config import Config
-from shufflenet.model import shufflenet_v2_x1_0 as create_model
+from model import convnext_tiny as create_model
 from utils import try_a_train, try_an_evaluate
 from torch.utils.tensorboard import SummaryWriter
 from torchvision import transforms, datasets
@@ -13,7 +13,7 @@ import time
 def main():
     config = Config()
     print("using {} device".format(config.device))
-    config.weights_file = 'shufflenet_v2_x1_0.pth'
+    config.weights_file = 'convnext_tiny.pth'
 
     log_dir = './runs/' + time.strftime('%Y-%m-%d-%H-%M', time.localtime())
     writer = SummaryWriter(log_dir=log_dir)
@@ -60,7 +60,7 @@ def main():
         net.load_state_dict(torch.load(config.weights_file))
 
     net.to(config.device)
-    optimizer = optim.Adam(net.parameters(), lr=config.learning_rate)
+    optimizer = optim.AdamW(net.parameters(), lr=config.learning_rate)
     best_acc = 0.0
     for epoch in range(config.epochs):
         # train
